@@ -1,5 +1,7 @@
 ## Formalization of Carleson's theorem via the Lacey-Thiele method
 
+[![Lean](https://github.com/roos-j/lean-lt-carleson/actions/workflows/lean.yml/badge.svg)](https://github.com/roos-j/lean-lt-carleson/actions/workflows/lean.yml)
+
 This is a formalization of Carleson's theorem on pointwise almost everywhere convergence of Fourier series following the Lacey-Thiele method from
 
 M. T. Lacey and C. Thiele, *A proof of boundedness of the Carleson operator*, Math. Res. Lett. **7** (2000), no. 4, 361–370.
