@@ -58,3 +58,4 @@ _minted*/
 # Local raw prompt history.
 automation/raw.md
 source/
+*.lock

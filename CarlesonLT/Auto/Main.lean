@@ -3312,7 +3312,7 @@ theorem avgIntegrand_eq (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {r : Fin 
       rw [Real.inv_rpow ht.le, ← Real.rpow_neg ht.le]; congr 1; ring
     rw [this]
     push_cast
-    ring
+    ring_nf
   rw [hunf, modelOp_eq_tsum_fixedScale α hα hr hm hg hGc hGb hGi]
   simp_rw [integral_fixedScale_rescale α hm ht (f : Rn n → ℂ) x y η]
   -- collect constants
@@ -6139,7 +6139,7 @@ theorem sum_vol_le_of_scale (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {ν :
     have hpd : ((A.filter fun P => g P = b : Finset (Tile n)) : Set (Tile n)).PairwiseDisjoint
         (fun P => P.I.toSet α) := by
       intro P hP Q hQ hPQ
-      simp only [Finset.coe_filter, Set.mem_setOf_eq] at hP hQ
+      simp only [Finset.coe_filter, Set.mem_ofPred_eq] at hP hQ
       exact hdis P hP.1 Q hQ.1 hPQ (hP.2.trans hQ.2.symm)
     have hmeas : volume (⋃ P ∈ A.filter fun P => g P = b, P.I.toSet α) =
         ∑ P ∈ A with g P = b, volume (P.I.toSet α) :=
@@ -6380,14 +6380,14 @@ theorem finite_tops_above_k (α : Fin n → ℕ) (P : Tile n) (k : ℤ) :
   · have hc := hI (DCube.center_mem α P.I) i
     have hs := side_pos α k i
     simp only [Tile.I, hk, DCube.center, PiLp.toLp_apply] at hc
-    simp only [a, b, Tile.cI, PiLp.toLp_apply, Set.mem_setOf_eq]
+    simp only [a, b, Tile.cI, PiLp.toLp_apply, Set.mem_ofPred_eq]
     constructor
     · rw [sub_le_iff_le_add, div_le_iff₀ hs]; nlinarith [hc.2]
     · rw [le_div_iff₀ hs]; nlinarith [hc.1]
   · have hc := hω i
     have hs := side_pos α (-k) i
     simp only [Tile.ω, Tile.cω, PiLp.toLp_apply, hk] at hc
-    simp only [a', b', Set.mem_setOf_eq]
+    simp only [a', b', Set.mem_ofPred_eq]
     constructor
     · rw [sub_le_iff_le_add, div_le_iff₀ hs]; nlinarith [hc.1]
     · rw [le_div_iff₀ hs]; nlinarith [hc.2]
@@ -6769,7 +6769,7 @@ theorem inv_mul_rho_cI_sub_eq (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {P 
   rw [← rho_dil α hα (inv_pos.mpr ht)]
   congr 1
   ext i
-  simp only [dil_apply, PiLp.sub_apply, Tile.cI, PiLp.toLp_apply, latticePt_apply, side, ← hk]
+  simp only [dil_apply, PiLp.sub_apply, Tile.cI, latticePt_apply, side, ← hk]
   rw [show ((2 : ℝ) ^ P.k)⁻¹ ^ α i = ((2 : ℝ) ^ (P.k * (α i : ℤ)))⁻¹ by
     rw [inv_pow, ← zpow_natCast, ← zpow_mul]]
   field_simp
@@ -6856,8 +6856,8 @@ theorem diag_sum_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) :
           (if P'.ω = P.ω then a P' ^ 2 / 2 * t P' P else 0) := by
       intro P P'
       by_cases h : P.ω = P'.ω
-      · simp only [if_pos h, if_pos h.symm, ht P' P]; ring
-      · simp only [if_neg h, if_neg (Ne.symm h)]; ring
+      · simp only [ite_eq_left h, ite_eq_left h.symm, ht P' P]; ring
+      · simp only [ite_eq_right h, ite_eq_right (Ne.symm h)]; ring
     simp_rw [e1, Finset.sum_add_distrib]
     rw [Finset.sum_comm (f := fun P P' => if P'.ω = P.ω then a P' ^ 2 / 2 * t P' P else 0)]
     rw [← two_mul]
@@ -6866,8 +6866,8 @@ theorem diag_sum_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) :
     rw [Finset.mul_sum, Finset.mul_sum]
     refine Finset.sum_congr rfl fun P' _ => ?_
     by_cases h : P.ω = P'.ω
-    · simp only [if_pos h, if_pos h.symm]; ring
-    · simp only [if_neg h, if_neg (Ne.symm h)]; ring
+    · simp only [ite_eq_left h]; ring
+    · simp only [ite_eq_right h]; ring
   calc _ = ∑ P ∈ U, ∑ P' ∈ U, (if P.ω = P'.ω then a P * a P' * t P P' else 0) := rfl
     _ ≤ _ := hsym
     _ = _ := hswap
@@ -7154,7 +7154,7 @@ theorem boundary_sum_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 <
     have hpd : ((T.filter fun P => P.k = k : Finset (Tile n)) : Set (Tile n)).PairwiseDisjoint
         (fun P => P.I.toSet α) := by
       intro P hP Q hQ hPQ
-      simp only [Finset.coe_filter, Set.mem_setOf_eq] at hP hQ
+      simp only [Finset.coe_filter, Set.mem_ofPred_eq] at hP hQ
       have hkPQ : P.I.k ≤ Q.I.k := by simp [Tile.I, hP.2, hQ.2]
       rcases DCube.subset_or_disjoint α P.I Q.I hkPQ with h | h
       · exfalso
@@ -7184,7 +7184,7 @@ theorem boundary_sum_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 <
             ENNReal.ofReal_ofNat]
           ring
       _ = ∑ i, ∫⁻ z, ENNReal.ofReal (2 * p i) * (F k z * ENNReal.ofReal |z i|) := by
-          refine lintegral_finset_sum' _ fun i _ => ?_
+          refine lintegral_finsetSum' _ fun i _ => ?_
           exact ((hFm k).mul (ENNReal.measurable_ofReal.comp
               ((continuous_abs.comp ((continuous_apply i).comp
                 (PiLp.continuous_ofLp 2 _))).measurable))).const_mul _ |>.aemeasurable
@@ -7708,19 +7708,19 @@ theorem energy_lemma (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n)
         have e1 : (if P.ω = P'.ω then a P * a P' * (0 : ℝ) else 0) = 0 := by split_ifs <;> simp
         refine add_nonneg (add_nonneg ?_ ?_) ?_ <;> split_ifs <;> positivity
       · rcases pairing_wavePhi_eq_zero_or α hα P P' ht0 with h | h | h
-        · rw [if_pos h]
+        · rw [ite_eq_left h]
           have h1 : 0 ≤ (if P'.k < P.k ∧ P.ω.toSet α ⊆ P'.semiHO0 α then a P * a P' * t P P' else 0) := by
             split_ifs <;> positivity
           have h2 : 0 ≤ (if P.k < P'.k ∧ P'.ω.toSet α ⊆ P.semiHO0 α then a P' * a P * t P' P else 0) := by
             split_ifs <;> positivity
           linarith
-        · rw [if_pos h]
+        · rw [ite_eq_left h]
           have h1 : 0 ≤ (if P.ω = P'.ω then a P * a P' * t P P' else 0) := by
             split_ifs <;> positivity
           have h2 : 0 ≤ (if P.k < P'.k ∧ P'.ω.toSet α ⊆ P.semiHO0 α then a P' * a P * t P' P else 0) := by
             split_ifs <;> positivity
           linarith
-        · rw [if_pos h, hsymm]
+        · rw [ite_eq_left h, hsymm]
           have h1 : 0 ≤ (if P.ω = P'.ω then a P * a P' * t P P' else 0) := by
             split_ifs <;> positivity
           have h2 : 0 ≤ (if P'.k < P.k ∧ P.ω.toSet α ⊆ P'.semiHO0 α then a P * a P' * t P P' else 0) := by
@@ -7902,7 +7902,7 @@ theorem rho_zero (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) : rho α (0 : Rn
 theorem setOf_rho_le_eq_preimage (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {r : ℝ} (hr : 0 < r) :
     {y : Rn n | rho α y ≤ r} = dil α r⁻¹ ⁻¹' {y | rho α y ≤ 1} := by
   ext y
-  simp only [Set.mem_setOf_eq, Set.mem_preimage]
+  simp only [Set.mem_ofPred_eq, Set.mem_preimage]
   rw [rho_dil α hα (inv_pos.mpr hr), inv_mul_le_iff₀ hr, mul_one]
 
 theorem volume_rho_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {r : ℝ} (hr : 0 < r) :
@@ -7918,7 +7918,7 @@ theorem setOf_rho_le_one_eq (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) :
     {y : Rn n | rho α y ≤ 1} = (WithLp.ofLp : Rn n → (Fin n → ℝ)) ⁻¹'
       Set.pi Set.univ (fun _ => Set.Icc (-1) 1) := by
   ext y
-  simp only [Set.mem_setOf_eq, Set.mem_preimage, Set.mem_pi, Set.mem_univ, true_implies,
+  simp only [Set.mem_ofPred_eq, Set.mem_preimage, Set.mem_pi, Set.mem_univ, true_implies,
     Set.mem_Icc]
   constructor
   · intro h i
@@ -8084,7 +8084,7 @@ theorem DCube.k_le_of_subset_enl3 (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i)
     by_cases hj : j = i
     · subst hj; simp [hv1, hv2]
     · have hs := side_pos α Q.k j
-      simp only [PiLp.toLp_apply, Function.update_of_ne hj, corner]
+      simp only [Function.update_of_ne hj, corner]
       constructor <;> nlinarith
   have hsQ := side_pos α Q.k i
   have hsJ := side_pos α J.k i
@@ -8096,7 +8096,7 @@ theorem DCube.k_le_of_subset_enl3 (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i)
     push Not at hcon
     set v := max (side α Q.k i * Q.ℓ i) (side α J.k i * (J.ℓ i + 2 ^ α i))
     have hv := (h (hcorner v (le_max_left _ _) (max_lt (by nlinarith) hcon)) i).2
-    simp only [PiLp.toLp_apply, Function.update_self] at hv
+    simp only [Function.update_self] at hv
     exact absurd (le_max_right _ _) (not_le.mpr hv)
   have hA : (2 : ℝ) ≤ 2 ^ α i := by
     calc (2 : ℝ) = 2 ^ 1 := by norm_num
@@ -8282,7 +8282,7 @@ theorem tree_scale_sum_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {b : �
   set z : Rn n := dil α ((2 : ℝ) ^ k)⁻¹ x - halfVec n
   have hinj : Set.InjOn (fun P : Tile n => P.ℓ) (F : Set (Tile n)) := by
     intro P hP Q hQ hℓ
-    simp only [F, Finset.coe_filter, Set.mem_setOf_eq] at hP hQ
+    simp only [F, Finset.coe_filter, Set.mem_ofPred_eq] at hP hQ
     refine hT.injOn_I α hP.1 hQ.1 ?_
     simp only [Tile.I, hP.2, hQ.2]
     exact congrArg _ hℓ
@@ -8425,7 +8425,7 @@ theorem K1_term_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {r : Fin n →
     (ν : ℕ) (hν : nu1 α ≤ ν) {m : Rn n → ℂ} (hm : ClassM α ν m) {E : Set (Rn n)}
     (hE : MeasurableSet E) {N : Rn n → Rn n}
     (hN : Measurable N) (T : Finset (Tile n)) {J : DCube n} (hJ : treeOK α T J)
-    {P : Tile n} (hP : P ∈ T) (hk : P.k ≤ J.k + 1) {c : ℂ} {ε μ : ℝ} (hε : 0 ≤ ε) (hμ : 0 ≤ μ)
+    {P : Tile n} (hP : P ∈ T) (hk : P.k ≤ J.k + 1) {c : ℂ} {ε μ : ℝ} (hε : 0 ≤ ε)
     (hc : ‖c‖ ≤ ε * ((2 : ℝ) ^ P.k) ^ ((absA α : ℝ) / 2))
     (hmass : ∫⁻ x in E ∩ N ⁻¹' (P.ω.toSet α), ENNReal.ofReal (wP α (nu1 α) P x) ≤ ENNReal.ofReal μ)
     {x₀ : Rn n} (hx₀ : x₀ ∈ J.toSet α) :
@@ -8682,7 +8682,7 @@ theorem K1_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n) {r : F
       rw [ha2b] at hsumP
       calc L = ∑ P ∈ T with P.k ≤ (J : DCube n).k + 1, ∫⁻ x in (J : DCube n).toSet α,
             ‖c P * wavePsi α m (N x) P x‖ₑ * (E ∩ N ⁻¹' (P.semiHO α r)).indicator 1 x := by
-            refine lintegral_finset_sum' _ fun P _ => ?_
+            refine lintegral_finsetSum' _ fun P _ => ?_
             exact ((measurable_const.mul ((continuous_wavePsi_joint α hm P).measurable.comp
               (hN.prodMk measurable_id))).enorm.mul (measurable_one.indicator
                 (hE.inter (hN (measurableSet_semiHO α P r))))).aemeasurable
@@ -8690,7 +8690,7 @@ theorem K1_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n) {r : F
               (1 + ((2 : ℝ) ^ P.k)⁻¹ * rho α (x₀ - P.cI α)) ^ (-a))) := by
             refine Finset.sum_le_sum fun P hP => ?_
             obtain ⟨hPT, hPk⟩ := Finset.mem_filter.mp hP
-            have := K1_term_le α hα hr ν hν1 hm hE hN T J.2.1 hPT hPk hε hμ (hc P hPT)
+            have := K1_term_le α hα hr ν hν1 hm hE hN T J.2.1 hPT hPk hε (hc P hPT)
               (hmass P hPT) hx₀
             refine this.trans (le_of_eq ?_)
             congr 1
@@ -9516,7 +9516,7 @@ theorem norm_le_sum_abs_coord (v : Rn n) : ‖v‖ ≤ ∑ j, |v j| := by
     _ ≤ ∑ j, ‖v j • EuclideanSpace.single j (1 : ℝ)‖ := norm_sum_le _ _
     _ = ∑ j, |v j| := by
         refine Finset.sum_congr rfl fun j _ => ?_
-        rw [norm_smul, EuclideanSpace.norm_single, norm_one, mul_one, Real.norm_eq_abs]
+        rw [norm_smul, PiLp.norm_single, norm_one, mul_one, Real.norm_eq_abs]
 
 /-- `∑_{k ∈ ks, k ≤ K} 2^{k − K} ≤ 2`. -/
 theorem sum_two_zpow_sub_le (ks : Finset ℤ) (K : ℤ) (hks : ∀ k ∈ ks, k ≤ K) :
@@ -9549,7 +9549,7 @@ theorem twoTree_semiHO_mono (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {r : 
     have hu : P.u = Q.u := congrArg DCube.ℓ hω
     intro ξ hξ i
     have := hξ i
-    simp only [Tile.semiHO, heq, hu] at this ⊢
+    simp only [heq, hu] at this ⊢
     exact this
 
 theorem far_of_mem_semiHO (α : Fin n → ℕ) {r : Fin n → Fin 2} {i₀ : Fin n} (hr : r i₀ = 1)
@@ -9857,11 +9857,11 @@ theorem chi_on_suppBox (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {r : Fin n
     -- the lower corner of `ω_Q` lies in `ω_{P(r)}`
     have hcorner : WithLp.toLp 2 (fun i => side α (-kp) i * ωq.ℓ i) ∈ Q.ω.toSet α := by
       rw [hQω, DCube.mem_toSet_iff_floor]; intro i
-      simp only [PiLp.toLp_apply, hωqk]
+      simp only [hωqk]
       rw [mul_div_cancel_left₀ _ (side_pos α _ i).ne', Int.floor_intCast]
     have hlow := (hsub hcorner i₀).1
     rw [hr] at hlow
-    simp only [PiLp.toLp_apply, Fin.isValue, Fin.val_one, Nat.cast_one] at hlow
+    simp only [Fin.isValue, Fin.val_one, Nat.cast_one] at hlow
     have hξi := suppBox_coord_lt α P hξ i₀
     have hsP := side_pos α (-P.k) i₀
     have hsp := side_pos α (-kp) i₀
@@ -9888,11 +9888,11 @@ theorem chi_on_suppBox (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {r : Fin n
       -- the lower corner of `ω_{Pm(r)}` lies in `ω_{P(r)}`
       have hcorner : WithLp.toLp 2 (fun i => side α (-Pm.k) i * (Pm.u i + (r i : ℝ) / 2)) ∈
           Pm.semiHO α r := by
-        intro i; simp only [PiLp.toLp_apply]
+        intro i
         have hs := side_pos α (-Pm.k) i
         constructor <;> nlinarith
       have hlow := (hsub (Pm.semiHO_subset_ω α r hcorner) i₀).1
-      simp only [PiLp.toLp_apply, hr, Fin.isValue, Fin.val_one, Nat.cast_one] at hlow
+      simp only [hr, Fin.isValue, Fin.val_one, Nat.cast_one] at hlow
       have hξi := suppBox_coord_lt α P hξ i₀
       have hsP := side_pos α (-P.k) i₀
       have hside : side α (-Pm.k) i₀ ≤ side α (-P.k) i₀ := side_mono α (by omega) i₀
@@ -9910,9 +9910,9 @@ theorem chi_on_suppBox (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {r : Fin n
       nlinarith
   by_cases h1 : kp ≤ P.k
   · by_cases h2 : P.k ≤ Pm.k
-    · rw [if_pos ⟨h1, h2⟩, hplus1 h1, hminus0 h2, sub_zero]
-    · rw [if_neg (fun h => h2 h.2), hplus1 h1, hminus1 (not_le.mp h2), sub_self]
-  · rw [if_neg (fun h => h1 h.1), hplus0 (not_le.mp h1)]
+    · rw [ite_eq_left ⟨h1, h2⟩, hplus1 h1, hminus0 h2, sub_zero]
+    · rw [ite_eq_right (fun h => h2 h.2), hplus1 h1, hminus1 (not_le.mp h2), sub_self]
+  · rw [ite_eq_right (fun h => h1 h.1), hplus0 (not_le.mp h1)]
     by_cases h2 : P.k ≤ Pm.k
     · rw [hminus0 h2, sub_zero]
     · exfalso; push Not at h1 h2; omega
@@ -9933,7 +9933,7 @@ theorem fhat_eq_of_inversion {g ψ : Rn n → ℂ} (hgc : Continuous g) (hgi : I
     have hG : ∀ v : Rn n, Real.fourierChar ⟪v, x⟫_ℝ • g' v = G ((2 * π) • v) := by
       intro v
       rw [Circle.smul_def, Real.fourierChar_apply]
-      simp only [G, g', inner_smul_right, smul_eq_mul, conj_trivial]
+      simp only [G, g', inner_smul_right, smul_eq_mul]
       rw [mul_comm, real_inner_comm x v]
       congr 1
       push_cast
@@ -10039,7 +10039,7 @@ theorem continuous_fhat {h : Rn n → ℂ} (hh : Integrable h) : Continuous (fha
   · exact Filter.Eventually.of_forall fun x => by rw [norm_mul, norm_cexp_neg_I_mul, one_mul]
   · exact Filter.Eventually.of_forall fun x => by fun_prop
 
-theorem norm_wavePsi_le (α : Fin n → ℕ) {m : Rn n → ℂ} {Cm : ℝ} (hCm : 0 ≤ Cm)
+theorem norm_wavePsi_le (α : Fin n → ℕ) {m : Rn n → ℂ} {Cm : ℝ}
     (hmb : ∀ ξ, ‖m ξ‖ ≤ Cm) (N : Rn n) (P : Tile n) (y : Rn n) :
     ‖wavePsi α m N P y‖ ≤ ((2 * π) ^ n)⁻¹ * (Cm * ∫ ξ, ‖fhat (wavePhi α P) ξ‖) := by
   simp only [wavePsi, norm_mul]
@@ -10147,7 +10147,7 @@ theorem sum_wavePsi_eq_conv (α : Fin n → ℕ) {ν : ℕ} {m : Rn n → ℂ} (
       have h2 : Continuous fun z : Rn n => ((N, x - z) : Rn n × Rn n) := by fun_prop
       simpa only [Function.comp_def] using h1.comp h2
     have := hh.bdd_mul (c := ((2 * π) ^ n)⁻¹ * (Cm * ∫ ξ, ‖fhat (wavePhi α P) ξ‖))
-      hc.aestronglyMeasurable (Filter.Eventually.of_forall fun z => norm_wavePsi_le α hCm hmb N P _)
+      hc.aestronglyMeasurable (Filter.Eventually.of_forall fun z => norm_wavePsi_le α hmb N P _)
     refine (this.const_mul (c P)).congr (Filter.Eventually.of_forall fun z => by ring)
   calc ∑ P ∈ A, c P * wavePsi α m N P x
       = (((2 * π) ^ n)⁻¹ : ℂ) * ∑ P ∈ A, ∫ ξ, c P * (m (ξ - N) * fhat (wavePhi α P) ξ *
@@ -10452,7 +10452,7 @@ theorem enorm_hBump_le_hMaj (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (L : 
     _ = _ := by ring
 
 theorem lintegral_hMaj_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {C : ℝ} (hC : 0 ≤ C) {M : ℕ}
-    (hM : absA α < M) (k : ℤ) {lam : ℝ} (hlam : 0 ≤ lam) :
+    (hM : absA α < M) (k : ℤ) (lam : ℝ) :
     ∫⁻ y : Rn n, hMaj α C M k lam (rho α y) ≤
       ENNReal.ofReal (2 ^ M * C * ∫ w : Rn n, (1 + rho α w) ^ (-(M : ℝ))) := by
   have ht : (0 : ℝ) < (2 : ℝ) ^ k := by positivity
@@ -10542,8 +10542,8 @@ theorem term1_le_maximal (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 
   have hW₂ : ∫⁻ y, g (x - y) * W₂ (rho α y) ≤ (∫⁻ y, W₂ (rho α y)) * G.maximal lam g x :=
     G.lintegral_mul_gauge_le hlam W₂ (hMaj_antitone α hC₂ M km hlam.le)
     (hMaj_const α C₂ M km hlam.le) hg x
-  have hI₁ := lintegral_hMaj_le α hα hC₁ hM kp hlam.le
-  have hI₂ := lintegral_hMaj_le α hα hC₂ hM km hlam.le
+  have hI₁ := lintegral_hMaj_le α hα hC₁ hM kp lam
+  have hI₂ := lintegral_hMaj_le α hα hC₂ hM km lam
   have hmeasW : Measurable fun z : Rn n => g (x - z) * W₁ (rho α z) :=
     (hg.comp (measurable_const.sub measurable_id)).mul
       ((hMaj_antitone α hC₁ M kp hlam.le).measurable.comp (continuous_rho α).measurable)
@@ -10621,11 +10621,11 @@ theorem twoTree_pointwise_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn 
     · by_cases hk : P.k ≤ Pm.k
       · have hxP : x ∈ E ∩ N ⁻¹' (P.semiHO α r) :=
           ⟨hxPm.1, twoTree_semiHO_mono α hα hS hS2 hP hPmS hk hxPm.2⟩
-        rw [if_pos hkp, if_pos (show kp ≤ P.k ∧ P.k ≤ Pm.k from ⟨hkp, hk⟩), Set.indicator_of_mem hxP, Pi.one_apply, mul_one]
+        rw [ite_eq_left hkp, ite_eq_left (show kp ≤ P.k ∧ P.k ≤ Pm.k from ⟨hkp, hk⟩), Set.indicator_of_mem hxP, Pi.one_apply, mul_one]
       · have hxP : x ∉ E ∩ N ⁻¹' (P.semiHO α r) := fun hxP =>
           hk (hPmax P (Finset.mem_filter.mpr ⟨Finset.mem_filter.mpr ⟨hP, hkp⟩, hxP⟩))
-        rw [if_pos hkp, if_neg (fun h => hk h.2), Set.indicator_of_notMem hxP, mul_zero]
-    · rw [if_neg hkp, if_neg (fun h => hkp h.1)]
+        rw [ite_eq_left hkp, ite_eq_right (fun h => hk h.2), Set.indicator_of_notMem hxP, mul_zero]
+    · rw [ite_eq_right hkp, ite_eq_right (fun h => hkp h.1)]
   -- the window identity
   set hp := hBump α 12 (by norm_num) kp ((DCube.ofPoint α (-kp) (top.cω α)).center α)
   set hm' := hBump α 6 (by norm_num) Pm.k (Pm.semiCenter α r)
@@ -10759,7 +10759,7 @@ theorem K2_twoTree_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n
   set B : ℝ := ∑ P ∈ S, ‖c P‖ * (((2 * π) ^ n)⁻¹ * (Cm * ∫ ξ, ‖fhat (wavePhi α P) ξ‖))
   have hHB : ∀ y, ‖H y‖ ≤ B := fun y => (norm_sum_le _ _).trans (Finset.sum_le_sum fun P _ => by
     rw [norm_mul]
-    exact mul_le_mul_of_nonneg_left (norm_wavePsi_le α hCm hmb _ P y) (norm_nonneg _))
+    exact mul_le_mul_of_nonneg_left (norm_wavePsi_le α hmb _ P y) (norm_nonneg _))
   have hHsq : Integrable fun y => ‖H y‖ ^ 2 :=
     (hHint.norm.const_mul B).mono' (hHint.norm.aestronglyMeasurable.pow 2)
       (Filter.Eventually.of_forall fun y => by
@@ -10813,7 +10813,7 @@ theorem K2_twoTree_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n
         intro x hx
         have hle : ∀ y ∈ (J : DCube n).toSet α, G.maximal ((2 : ℝ) ^ ((J : DCube n).k + 2)) Hn x ≤
             ENNReal.ofReal (2 ^ D) * M0 y := fun y hy => h2D ▸
-          G.maximal_le_of_rho_sub_le Hn (by positivity)
+          G.maximal_le_of_rho_sub_le Hn
             ((rho_sub_le_of_mem_DCube α hα _ hx hy).trans
               (zpow_le_zpow_right₀ (by norm_num)
                 (show (J : DCube n).k ≤ (J : DCube n).k + 2 by omega)))
@@ -10998,7 +10998,7 @@ theorem tree_estimate (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n
   classical
   obtain ⟨i₀, hi₀⟩ : ∃ i, r i = 1 := by
     by_contra h
-    push_neg at h
+    push Not at h
     exact hr (funext fun i => by
       simpa using (Fin.exists_fin_two.mp ⟨r i, rfl⟩ : r i = 0 ∨ r i = 1).resolve_right (h i))
   obtain ⟨CK, hCK, hK1⟩ := K1_le α hα hn hr ν hν
@@ -11024,7 +11024,7 @@ theorem tree_estimate (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n
     · simp [c, h0]
     · have hn0 : (‖d P‖ : ℂ) ≠ 0 := by exact_mod_cast (norm_ne_zero_iff.mpr h0)
       have hsd : star (d P) * d P = ((‖d P‖ : ℂ)) ^ 2 := Complex.conj_mul' (d P)
-      simp only [c, if_neg h0]
+      simp only [c, ite_eq_right h0]
       calc (‖a P‖ : ℂ) * (star (d P) / (‖d P‖ : ℂ)) * d P
           = (‖a P‖ : ℂ) * (star (d P) * d P) / (‖d P‖ : ℂ) := by ring
         _ = (‖a P‖ : ℂ) * (‖d P‖ : ℂ) ^ 2 / (‖d P‖ : ℂ) := by rw [hsd]
@@ -11033,7 +11033,7 @@ theorem tree_estimate (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n
     intro P
     by_cases h0 : d P = 0
     · simp [c, h0]
-    · simp only [c, if_neg h0, norm_mul, norm_div, Complex.norm_real, norm_norm, norm_star]
+    · simp only [c, ite_eq_right h0, norm_mul, norm_div, Complex.norm_real, norm_norm, norm_star]
       rw [div_self (norm_ne_zero_iff.mpr h0), mul_one]
   have hc : ∀ P ∈ T, ‖c P‖ ≤ ε * ((2 : ℝ) ^ P.k) ^ ((absA α : ℝ) / 2) := fun P hP =>
     (hcn P).trans (norm_pairing_le_of_energy_le α hε henergy hP)
@@ -11065,7 +11065,7 @@ theorem tree_estimate (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n
     obtain ⟨Cm, hCm, hmb⟩ := hm.bounded'
     have hs : MeasurableSet (E ∩ N ⁻¹' (P.semiHO α r)) := hE.inter (hN (measurableSet_semiHO α P r))
     rw [integrable_indicator_iff hs]
-    haveI : IsFiniteMeasure (volume.restrict (E ∩ N ⁻¹' (P.semiHO α r))) :=
+    have : IsFiniteMeasure (volume.restrict (E ∩ N ⁻¹' (P.semiHO α r))) :=
       ⟨by rw [Measure.restrict_apply_univ]; exact (measure_mono Set.inter_subset_left).trans_lt hEfin⟩
     refine (integrable_const (((2 * π) ^ n)⁻¹ * (Cm * ∫ ξ, ‖fhat (wavePhi α P) ξ‖))).mono'
       (((measurable_wavePsi_comp hm hN P).mul hσ).aestronglyMeasurable)
@@ -11073,7 +11073,7 @@ theorem tree_estimate (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n
     rw [norm_mul]
     calc ‖wavePsi α m (N x) P x‖ * ‖σ x‖ ≤ ‖wavePsi α m (N x) P x‖ * 1 := by
           gcongr; exact hσ1 x
-      _ ≤ _ := by rw [mul_one]; exact norm_wavePsi_le α hCm hmb _ P x
+      _ ≤ _ := by rw [mul_one]; exact norm_wavePsi_le α hmb _ P x
   have hsum : ∑ P ∈ T, c P * d P = ∫ x, σ x * Fs T x := by
     have h1 : ∀ P, c P * d P = ∫ x, c P * (E ∩ N ⁻¹' (P.semiHO α r)).indicator
         (fun x => wavePsi α m (N x) P x * σ x) x := by
@@ -11437,7 +11437,7 @@ theorem keyEstimate_of_classM (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn
 
 /-- The dilation `δ_t` as a continuous linear equivalence. -/
 def dilCLE (α : Fin n → ℕ) {t : ℝ} (ht : 0 < t) : Rn n ≃L[ℝ] Rn n :=
-  (LinearEquiv.ofLinear (dilLin α t) (dilLin α t⁻¹)
+  (LinearEquiv.ofLinearMap (dilLin α t) (dilLin α t⁻¹)
     (LinearMap.ext fun x => by
       simp only [LinearMap.comp_apply, dilLin_apply, dil_dil, mul_inv_cancel₀ ht.ne', dil_one,
         LinearMap.id_apply])
@@ -11719,7 +11719,7 @@ theorem conj_modelOp_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 <
     exact Finset.sup'_le hF _ fun N _ =>
       (hbd m hm' g g.integrable (integrable_fhat_schwartz g) (a N) z).2
   have hHint : IntegrableOn H E' volume := by
-    haveI : IsFiniteMeasure (volume.restrict E') :=
+    have : IsFiniteMeasure (volume.restrict E') :=
       ⟨by rw [Measure.restrict_apply_univ]; exact hE'fin⟩
     exact (integrable_const Cb).mono' hmeasH.aestronglyMeasurable
       (Filter.Eventually.of_forall hHb)
@@ -11790,8 +11790,9 @@ theorem measurable_avgIntegrand (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {
       (hm.measurable.comp measurable_snd)).mul ?_).mul ?_
     · exact (by fun_prop : Continuous fun q : (Rn n × Rn n × Rn n × ℝ) × Rn n =>
         Complex.exp (Complex.I * (⟪q.1.1, q.2⟫_ℝ : ℂ))).measurable
-    · exact (measurable_XiR α r).comp
-        (measurable_snd.prodMk (measurable_fst.snd.fst.prodMk measurable_fst.snd.snd.snd))
+    · have hg : Measurable fun q : (Rn n × Rn n × Rn n × ℝ) × Rn n => (q.2, q.1.2.1, q.1.2.2.2) :=
+        measurable_snd.prodMk (measurable_fst.snd.fst.prodMk measurable_fst.snd.snd.snd)
+      simpa only [Function.comp_def] using (measurable_XiR α r).comp hg
   exact hK.stronglyMeasurable.integral_prod_right'.measurable
 
 
@@ -11831,7 +11832,7 @@ theorem ae_shift_coord_ne_zero (F : Finset (Rn n)) :
   rw [ae_iff]
   have : {η : Rn n | ¬ (η + N) i ≠ 0} = {η : Rn n | η i = -N i} := by
     ext η
-    simp only [ne_eq, not_not, Set.mem_setOf_eq, PiLp.add_apply]
+    simp only [ne_eq, not_not, Set.mem_ofPred_eq, PiLp.add_apply]
     constructor <;> intro h <;> linarith
   rw [this]
   exact volume_coord_eq i _
@@ -12091,7 +12092,7 @@ theorem bounded_of_homogeneous (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) {q
     (hq : ContinuousOn q {0}ᶜ) (hhom : ∀ ξ : Rn n, ξ ≠ 0 → ∀ t : ℝ, 0 < t → q (dil α t ξ) = q ξ) :
     ∃ C : ℝ, 0 ≤ C ∧ ∀ ξ, ‖q ξ‖ ≤ C := by
   have hsub : {ξ : Rn n | rho α ξ = 1} ⊆ {0}ᶜ := fun ξ hξ h0 => by
-    simp only [Set.mem_setOf_eq] at hξ
+    simp only [Set.mem_ofPred_eq] at hξ
     rw [Set.mem_singleton_iff.mp h0, rho_zero α hα] at hξ
     exact zero_ne_one hξ
   obtain ⟨C, hC⟩ := (isCompact_rho_eq_one α hα).exists_bound_of_continuousOn (hq.mono hsub)
@@ -12262,7 +12263,7 @@ theorem carleson_theta_weak (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn :
       exact le_iSup₂ (f := fun N (_ : N ∈ D) => g N x) (e j) (by rw [he]; exact ⟨j, rfl⟩)
   have hset : {x | ENNReal.ofReal t < carleson M f x} = ⋃ k, U k := by
     ext x
-    simp only [Set.mem_setOf_eq, Set.mem_iUnion, U, hcarl x, lt_iSup_iff]
+    simp only [Set.mem_ofPred_eq, Set.mem_iUnion, U, hcarl x, lt_iSup_iff]
   have hmono : Monotone U := by
     intro k l hkl x (hx : ENNReal.ofReal t < _)
     show ENNReal.ofReal t < _
@@ -12348,8 +12349,8 @@ theorem exists_refl_nonpos (ξ : Rn n) : ∃ s : Fin n → Bool, ∀ i, refl s �
   refine ⟨fun i => decide (0 < ξ i), fun i => ?_⟩
   rw [refl_apply]
   by_cases h : 0 < ξ i
-  · simp only [h, decide_true, if_true]; linarith
-  · simp only [h, decide_false]; simp only [Bool.false_eq_true, if_false]; linarith
+  · simp only [h, decide_true, ite_true]; linarith
+  · simp only [h, decide_false]; simp only [Bool.false_eq_true, ite_false]; linarith
 
 theorem inner_refl (s : Fin n → Bool) (x ξ : Rn n) : ⟪refl s x, refl s ξ⟫_ℝ = ⟪x, ξ⟫_ℝ :=
   (refl s).inner_map_map x ξ
@@ -12362,7 +12363,7 @@ theorem fhat_comp_refl (s : Fin n → Bool) (f : Rn n → ℂ) (ξ : Rn n) :
   rw [← h]
   congr 1
   funext x
-  simp only [Function.comp, LinearIsometryEquiv.coe_toHomeomorph, inner_refl]
+  simp only [Function.comp, inner_refl]
 
 /-- The Carleson operator commutes with reflections:
 `𝒞_{M ∘ S}(f ∘ S)(x) = 𝒞_M f(S x)`. -/
@@ -12378,7 +12379,7 @@ theorem carleson_comp_refl (s : Fin n → Bool) (M : Rn n → ℂ) (f : Rn n →
     rw [← h]
     congr 1
     funext ξ
-    simp only [Function.comp, LinearIsometryEquiv.coe_toHomeomorph, fhat_comp_refl, inner_refl,
+    simp only [Function.comp, fhat_comp_refl, inner_refl,
       LinearIsometryEquiv.map_sub]
   simp_rw [h1]
   exact (refl s).toEquiv.iSup_comp (g := fun N => ‖∫ ζ, fhat f ζ *
@@ -12409,7 +12410,7 @@ theorem normM_le_of_iteratedFDeriv (α : Fin n → ℕ) (ν : ℕ) (m' : Rn n �
   rw [iterPartial, ← ofReal_norm]
   refine ENNReal.ofReal_le_ofReal (((iteratedFDeriv ℝ k m' ξ).le_opNorm _).trans ?_)
   have : ∏ j, ‖EuclideanSpace.single (i j) (1 : ℝ)‖ = 1 := by
-    simp [EuclideanSpace.norm_single]
+    simp
   rw [this, mul_one]
   exact h k hk ξ hξ
 
@@ -12455,7 +12456,7 @@ theorem normM_mul_le (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n)
     ∃ Cq : ℝ, 0 ≤ Cq ∧ ∀ m : Rn n → ℂ, ClassM α ν m →
       (normM α ν (fun ξ => q ξ * m ξ)).toReal ≤ Cq * (normM α ν m).toReal := by
   have hsub : {ξ : Rn n | rho α ξ = 1} ⊆ {0}ᶜ := fun ξ hξ h0 => by
-    simp only [Set.mem_setOf_eq] at hξ
+    simp only [Set.mem_ofPred_eq] at hξ
     rw [Set.mem_singleton_iff.mp h0, rho_zero α hα] at hξ
     exact zero_ne_one hξ
   have hopen : IsOpen ({0}ᶜ : Set (Rn n)) := isOpen_compl_singleton
@@ -12641,7 +12642,7 @@ theorem volume_carleson_refl (s : Fin n → Bool) (P : Rn n → ℂ) (f : Rn n �
   have hset : {x | τ < carleson P f x} =
       refl s ⁻¹' {y | τ < carleson (P ∘ refl s) (f ∘ refl s) y} := by
     ext x
-    simp only [Set.mem_setOf_eq, Set.mem_preimage]
+    simp only [Set.mem_ofPred_eq, Set.mem_preimage]
     have h := carleson_comp_refl s (P ∘ refl s) (f ∘ refl s) x
     have e1 : (P ∘ refl s) ∘ refl s = P := funext fun ξ => by simp [refl_refl]
     have e2 : (f ∘ refl s) ∘ refl s = f := funext fun ξ => by simp [refl_refl]
@@ -12747,9 +12748,9 @@ theorem thm_1_1 (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n) (ν�
   have hsub : {x | ENNReal.ofReal t < carleson m f x} ⊆
       ⋃ p ∈ coneIdx n, {x | ENNReal.ofReal (t / J) < carleson (P p) f x} := by
     intro x hx
-    simp only [Set.mem_setOf_eq] at hx
+    simp only [Set.mem_ofPred_eq] at hx
     by_contra hcon
-    simp only [Set.mem_iUnion, Set.mem_setOf_eq, not_exists, not_lt] at hcon
+    simp only [Set.mem_iUnion, Set.mem_ofPred_eq, not_exists, not_lt] at hcon
     have h1 := carleson_le_sum hn (coneIdx n) P m hPb hPm hsum f x
     have h2 : ∑ p ∈ coneIdx n, carleson (P p) f x ≤ ∑ _p ∈ coneIdx n, ENNReal.ofReal (t / J) :=
       Finset.sum_le_sum fun p hp => hcon p hp

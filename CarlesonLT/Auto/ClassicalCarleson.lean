@@ -38,12 +38,12 @@ namespace Auto
 def toR1 : ℝ ≃ₗᵢ[ℝ] Rn 1 :=
   LinearIsometry.toLinearIsometryEquiv
     { toLinearMap := LinearMap.toSpanSingleton ℝ (Rn 1) (EuclideanSpace.single 0 1)
-      norm_map' := fun t => by simp [norm_smul, EuclideanSpace.norm_single] }
+      norm_map' := fun t => by simp [norm_smul] }
     (by simp)
 
 @[simp]
 theorem toR1_apply_zero (t : ℝ) : toR1 t 0 = t := by
-  simp [toR1, LinearIsometry.coe_toLinearIsometryEquiv]
+  simp [toR1]
 
 theorem inner_toR1 (a b : ℝ) : ⟪toR1 a, toR1 b⟫_ℝ = a * b := by
   rw [toR1.inner_map_map, real_inner_eq_re_inner, RCLike.inner_apply, conj_trivial]
@@ -101,7 +101,8 @@ theorem carleson_mHalf_weak :
   obtain ⟨C, hC, h⟩ := thm_1_1 alpha1 alpha1_pos one_pos 5 (by rw [absA_alpha1])
   refine ⟨C * (normM alpha1 5 mHalf).toReal, by positivity, fun G t ht => ?_⟩
   have h1 := h mHalf (classM_mHalf 5) G t ht
-  exact le_sq_of_mul_rpow_half_le ht (by positivity) (by rwa [mul_assoc] at h1 ⊢)
+  rw [mul_assoc] at h1
+  exact le_sq_of_mul_rpow_half_le ht (by positivity) (by rw [mul_assoc]; exact h1)
 
 
 /-! ### Step 2: the Dirichlet kernel of the real line -/
@@ -232,7 +233,7 @@ theorem carlesonIntegrand_mHalf (g : 𝓢(ℝ, ℂ)) (x N : ℝ) :
   rw [← map_sub, mHalf_toR1, fhat_schwartzToR1, inner_toR1, Set.indicator_apply]
   by_cases hξ : N < ξ
   · have h1 : 0 < 2 * π * ξ - 2 * π * N := by nlinarith
-    rw [if_pos h1, if_pos (Set.mem_Ioi.mpr hξ), mul_one, Real.fourier_real_eq_integral_exp_smul,
+    rw [ite_eq_left h1, ite_eq_left (Set.mem_Ioi.mpr hξ), mul_one, Real.fourier_real_eq_integral_exp_smul,
       Circle.smul_def, smul_eq_mul, Real.fourierChar_apply]
     refine (mul_comm _ _).trans ?_
     congr 1
@@ -240,7 +241,7 @@ theorem carlesonIntegrand_mHalf (g : 𝓢(ℝ, ℂ)) (x N : ℝ) :
     · congr 1; funext y; rw [smul_eq_mul]; congr 2; push_cast; ring
   · have h1 : ¬ 0 < 2 * π * ξ - 2 * π * N := by
       intro h'; apply hξ; nlinarith
-    rw [if_neg h1, if_neg (fun h' => hξ (Set.mem_Ioi.mp h')), mul_zero]
+    rw [ite_eq_right h1, ite_eq_right (fun h' => hξ (Set.mem_Ioi.mp h')), mul_zero]
 
 theorem enorm_cutoffIntegral_le (g : 𝓢(ℝ, ℂ)) (x N : ℝ) :
     ‖cutoffIntegral g x N‖ₑ ≤ ENNReal.ofReal (2 * π)⁻¹ * carleson mHalf (schwartzToR1 g) (toR1 x) := by
@@ -376,10 +377,9 @@ theorem enorm_integral_mul_le {u v : ℝ → ℂ} (hu : MemLp u 2 volume) (hv : 
   simp_rw [enorm_mul]
   have h := ENNReal.lintegral_mul_le_Lp_mul_Lq volume Real.HolderConjugate.two_two
     hu.aestronglyMeasurable.enorm hv.aestronglyMeasurable.enorm
-  rw [eLpNorm_eq_lintegral_rpow_enorm (by norm_num) (by norm_num),
-    eLpNorm_eq_lintegral_rpow_enorm (by norm_num) (by norm_num)]
+  rw [eLpNorm_eq_lintegral_rpow_enorm_toReal (by norm_num) (by norm_num) hu.aestronglyMeasurable,
+    eLpNorm_eq_lintegral_rpow_enorm_toReal (by norm_num) (by norm_num) hv.aestronglyMeasurable]
   simpa using h
-  all_goals first | exact hv.aestronglyMeasurable | exact hu.aestronglyMeasurable
 
 /-- `S_R f(x)` depends continuously on `f ∈ L²`. -/
 theorem enorm_partialFourierIntegral_sub_le {f g : ℝ → ℂ} (hf : MemLp f 2 volume)
@@ -495,7 +495,7 @@ theorem volume_bad_eq_zero {f : ℝ → ℂ} (hf : MemLp f 2 volume) {ε : ℝ} 
         {x | ENNReal.ofReal (ε / 3) ≤ ‖h x‖ₑ} := by
       intro x hx
       by_contra hcon
-      simp only [Set.mem_union, Set.mem_setOf_eq, not_or, not_exists, not_and, not_lt] at hcon
+      simp only [Set.mem_union, Set.mem_ofPred_eq, not_or, not_exists, not_and, not_lt] at hcon
       obtain ⟨h1, h2⟩ := hcon
       apply hx
       have hg' := (tendsto_partialFourierIntegral_schwartz g x)
@@ -711,11 +711,11 @@ theorem indicator_dirichletPer_eq (N : ℕ) (z : ℝ) :
       dirichletKernel (N + 1 / 2) z + (corrPsi z : ℂ) * (Real.sin ((2 * N + 1) * π * z) : ℂ) := by
   by_cases hz : z ∈ Set.Ico (-1 / 2 : ℝ) (1 / 2)
   · rw [Set.indicator_of_mem hz]
-    simp only [corrPsi, if_pos hz, corrPhi]
+    simp only [corrPsi, ite_eq_left hz, corrPhi]
     by_cases h0 : z = 0
     · subst h0
       simp [dirichletPer_zero, dirichletKernel]; ring
-    · rw [if_neg h0]
+    · rw [ite_eq_right h0]
       have hs : Real.sin (π * z) ≠ 0 := by
         have habs : |π * z| ≤ π / 2 := by
           rw [abs_mul, abs_of_pos Real.pi_pos]
@@ -735,7 +735,7 @@ theorem indicator_dirichletPer_eq (N : ℕ) (z : ℝ) :
         rw [eq_div_iff hsC, hD]
       rw [hDz]
       unfold dirichletKernel
-      rw [if_neg h0, show (2 * π * ((N : ℝ) + 1 / 2) * z : ℝ) = (2 * N + 1) * π * z by ring]
+      rw [ite_eq_right h0, show (2 * π * ((N : ℝ) + 1 / 2) * z : ℝ) = (2 * N + 1) * π * z by ring]
       generalize Real.sin ((2 * N + 1) * π * z) = a at *
       generalize Real.sin (π * z) = b at *
       have hπz : (π : ℂ) * z ≠ 0 := by exact_mod_cast mul_ne_zero Real.pi_ne_zero h0
@@ -744,7 +744,7 @@ theorem indicator_dirichletPer_eq (N : ℕ) (z : ℝ) :
       ring
   · rw [Set.indicator_of_notMem hz]
     have h0 : z ≠ 0 := by rintro rfl; exact hz ⟨by norm_num, by norm_num⟩
-    simp only [corrPsi, if_neg hz, dirichletKernel, if_neg h0]
+    simp only [corrPsi, ite_eq_right hz, dirichletKernel, ite_eq_right h0]
     rw [show (2 * π * ((N : ℝ) + 1 / 2) * z : ℝ) = (2 * N + 1) * π * z by ring]
     generalize Real.sin ((2 * N + 1) * π * z) = a
     push_cast
@@ -770,8 +770,8 @@ theorem memLp_Ioc_shift {f : ℝ → ℂ} (hper : Function.Periodic f 1)
     have := hper.sub_int_mul_eq (n := k) (x := x)
     simpa using this
   by_cases h : k < x ∧ x ≤ k + 1
-  · rw [if_pos ⟨by linarith [h.1], by linarith [h.2]⟩, if_pos h, hfx]
-  · rw [if_neg (fun h' => h ⟨by linarith [h'.1], by linarith [h'.2]⟩), if_neg h]
+  · rw [ite_eq_left ⟨by linarith [h.1], by linarith [h.2]⟩, ite_eq_left h, hfx]
+  · rw [ite_eq_right (fun h' => h ⟨by linarith [h'.1], by linarith [h'.2]⟩), ite_eq_right h]
 
 theorem memLp_window {f : ℝ → ℂ} (hper : Function.Periodic f 1)
     (hf : MemLp f 2 (volume.restrict (Set.Ioc 0 1))) (a : ℤ) : MemLp (window f a) 2 volume := by
@@ -795,7 +795,7 @@ theorem integrable_window {f : ℝ → ℂ} (hper : Function.Periodic f 1)
     (hf : MemLp f 2 (volume.restrict (Set.Ioc 0 1))) (a : ℤ) : Integrable (window f a) := by
   have h := (memLp_indicator_iff_restrict (measurableSet_Ioc (a := (a : ℝ) - 1) (b := a + 2))).mp
     (memLp_window hper hf a)
-  haveI : IsFiniteMeasure (volume.restrict (Set.Ioc ((a : ℝ) - 1) (a + 2))) :=
+  have : IsFiniteMeasure (volume.restrict (Set.Ioc ((a : ℝ) - 1) (a + 2))) :=
     ⟨by simp⟩
   exact (integrable_indicator_iff measurableSet_Ioc).mpr (h.integrable (by norm_num))
 
@@ -810,22 +810,22 @@ theorem dirichletPer_sub_one (N : ℕ) (z : ℝ) : dirichletPer N (z - 1) = diri
 theorem intervalIntegrable_mul_dirichletPer {f : ℝ → ℂ}
     (hf : MemLp f 2 (volume.restrict (Set.Ioc 0 1))) (N : ℕ) (x : ℝ) :
     IntervalIntegrable (fun y => f y * dirichletPer N (x - y)) volume 0 1 := by
-  haveI : IsFiniteMeasure (volume.restrict (Set.Ioc (0 : ℝ) 1)) := ⟨by simp⟩
+  have : IsFiniteMeasure (volume.restrict (Set.Ioc (0 : ℝ) 1)) := ⟨by simp⟩
   have hi : IntervalIntegrable f volume 0 1 :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le zero_le_one).mpr (hf.integrable (by norm_num))
   refine hi.mul_continuousOn ?_
   unfold dirichletPer
-  exact (continuous_finset_sum _ fun k _ => by fun_prop).continuousOn
+  exact (continuous_finsetSum _ fun k _ => by fun_prop).continuousOn
 
 /-- `S_N f(x) = ∫_0^1 f(y) D_N(x − y) dy`. -/
 theorem fourierPartialSum1_eq {f : ℝ → ℂ} (hf : MemLp f 2 (volume.restrict (Set.Ioc 0 1)))
     (N : ℕ) (x : ℝ) : fourierPartialSum1 f N x = ∫ y in (0 : ℝ)..1, f y * dirichletPer N (x - y) := by
   unfold fourierPartialSum1 fourierCoeff1 dirichletPer
   simp_rw [Finset.mul_sum]
-  haveI : IsFiniteMeasure (volume.restrict (Set.Ioc (0 : ℝ) 1)) := ⟨by simp⟩
+  have : IsFiniteMeasure (volume.restrict (Set.Ioc (0 : ℝ) 1)) := ⟨by simp⟩
   have hi : IntervalIntegrable f volume 0 1 :=
     (intervalIntegrable_iff_integrableOn_Ioc_of_le zero_le_one).mpr (hf.integrable (by norm_num))
-  rw [intervalIntegral.integral_finset_sum (fun k _ => hi.mul_continuousOn (by fun_prop))]
+  rw [intervalIntegral.integral_finsetSum (fun k _ => hi.mul_continuousOn (by fun_prop))]
   refine Finset.sum_congr rfl fun k _ => ?_
   rw [← intervalIntegral.integral_mul_const]
   congr 1; funext y
@@ -856,8 +856,8 @@ theorem fourierPartialSum1_eq_local {f : ℝ → ℂ} (hper : Function.Periodic 
     simp only [window, Set.indicator_apply, Set.mem_Ioc, Set.mem_Ico]
     by_cases hy : x - 1 / 2 < y ∧ y ≤ x - 1 / 2 + 1
     · have hw : (a : ℝ) - 1 < y ∧ y ≤ a + 2 := ⟨by linarith [hx.1, hy.1], by linarith [hx.2, hy.2]⟩
-      rw [if_pos hy, if_pos hw, if_pos ⟨by linarith [hy.2], by linarith [hy.1]⟩]
-    · rw [if_neg hy, if_neg (show ¬(-1 / 2 ≤ x - y ∧ x - y < 1 / 2) from
+      rw [ite_eq_left hy, ite_eq_left hw, ite_eq_left ⟨by linarith [hy.2], by linarith [hy.1]⟩]
+    · rw [ite_eq_right hy, ite_eq_right (show ¬(-1 / 2 ≤ x - y ∧ x - y < 1 / 2) from
         fun h => hy ⟨by linarith [h.2], by linarith [h.1]⟩), mul_zero]
   simp_rw [hpt]
   have hint2 : Integrable fun y => window f a y *
@@ -866,7 +866,8 @@ theorem fourierPartialSum1_eq_local {f : ℝ → ℂ} (hper : Function.Periodic 
     · exact ((Complex.measurable_ofReal.comp (measurable_corrPsi.comp
         (measurable_const.sub measurable_id))).mul (by fun_prop)).aestronglyMeasurable
     · rw [norm_mul, Complex.norm_real, Complex.norm_real, Real.norm_eq_abs, Real.norm_eq_abs]
-      exact mul_le_one₀ (abs_corrPsi_le _) (abs_nonneg _) (Real.abs_sin_le_one _)
+      exact (mul_le_mul (abs_corrPsi_le _) (Real.abs_sin_le_one _) (abs_nonneg _) zero_le_one).trans
+        (by norm_num)
   rw [integral_add (integrable_mul_dirichletKernel (memLp_window hper hf a) (by positivity) x) hint2]
   rfl
 

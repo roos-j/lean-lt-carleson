@@ -73,38 +73,50 @@ variable {E : Type*} [AddCommGroup E] [TopologicalSpace E] [IsTopologicalAddGrou
 /-- The closed gauge ball `B(x, r) = {y : ρ(x - y) ≤ r}`. -/
 def ball (x : E) (r : ℝ) : Set E := {y | G.ρ (x - y) ≤ r}
 
+omit [IsTopologicalAddGroup E] [BorelSpace E] [SecondCountableTopology E]
+  [μ.IsAddLeftInvariant] [SFinite μ] in
 theorem ball_eq_preimage (x : E) (r : ℝ) :
     G.ball x r = (fun y => -x + y) ⁻¹' {z | G.ρ z ≤ r} := by
   ext y
-  simp only [ball, mem_setOf_eq, mem_preimage]
+  simp only [ball, mem_ofPred_eq, mem_preimage]
   rw [← G.neg (x - y), neg_sub, sub_eq_neg_add]
 
+omit [SecondCountableTopology E] [μ.IsAddLeftInvariant] [SFinite μ] in
 theorem measurableSet_ball (x : E) (r : ℝ) : MeasurableSet (G.ball x r) :=
   (isClosed_le (G.continuous.comp (continuous_const.sub continuous_id)) continuous_const).measurableSet
 
+omit [SecondCountableTopology E] [SFinite μ] in
 theorem measure_ball (x : E) (r : ℝ) : μ (G.ball x r) = μ {z | G.ρ z ≤ r} := by
   rw [ball_eq_preimage, measure_preimage_add]
 
+omit [SecondCountableTopology E] [SFinite μ] in
 theorem measure_ball_eq (x : E) {r : ℝ} (hr : 0 < r) :
     μ (G.ball x r) = ENNReal.ofReal (r ^ G.D) * μ {y | G.ρ y ≤ 1} := by
   rw [measure_ball, G.vol r hr]
 
+omit [SecondCountableTopology E] [SFinite μ] in
 theorem measure_ball_pos (x : E) {r : ℝ} (hr : 0 < r) : 0 < μ (G.ball x r) := by
   rw [G.measure_ball_eq x hr]
   exact ENNReal.mul_pos (by simpa using Real.rpow_pos_of_pos hr G.D) G.vol_pos.ne'
 
+omit [SecondCountableTopology E] [SFinite μ] in
 theorem measure_ball_lt_top (x : E) {r : ℝ} (hr : 0 < r) : μ (G.ball x r) < ⊤ := by
   rw [G.measure_ball_eq x hr]
   exact ENNReal.mul_lt_top ENNReal.ofReal_lt_top G.vol_lt_top
 
+omit [SecondCountableTopology E] [SFinite μ] in
 theorem measure_ball_mul (x : E) {c r : ℝ} (hc : 0 < c) (hr : 0 < r) :
     μ (G.ball x (c * r)) = ENNReal.ofReal (c ^ G.D) * μ (G.ball x r) := by
   rw [G.measure_ball_eq x (mul_pos hc hr), G.measure_ball_eq x hr, ← mul_assoc,
     ← ENNReal.ofReal_mul (by positivity), Real.mul_rpow hc.le hr.le]
 
+omit [IsTopologicalAddGroup E] [BorelSpace E] [SecondCountableTopology E]
+  [μ.IsAddLeftInvariant] [SFinite μ] in
 theorem ball_mono (x : E) {r s : ℝ} (h : r ≤ s) : G.ball x r ⊆ G.ball x s :=
   fun _ hy => le_trans hy h
 
+omit [IsTopologicalAddGroup E] [BorelSpace E] [SecondCountableTopology E]
+  [μ.IsAddLeftInvariant] [SFinite μ] in
 theorem mem_ball_self (x : E) {r : ℝ} (hr : 0 ≤ r) : x ∈ G.ball x r := by
   simp [ball, G.zero, hr]
 
@@ -112,19 +124,23 @@ theorem mem_ball_self (x : E) {r : ℝ} (hr : 0 ≤ r) : x ∈ G.ball x r := by
 def maximal (lam : ℝ) (g : E → ℝ≥0∞) (x : E) : ℝ≥0∞ :=
   ⨆ (q : ℚ) (_ : lam ≤ q) (_ : 0 < q), (μ (G.ball 0 q))⁻¹ * ∫⁻ y in G.ball x q, g y ∂μ
 
+omit [SecondCountableTopology E] [SFinite μ] in
 theorem measure_ball_zero (x : E) (r : ℝ) : μ (G.ball x r) = μ (G.ball 0 r) := by
   rw [G.measure_ball, G.measure_ball]
 
+omit [SecondCountableTopology E] [SFinite μ] in
 theorem le_maximal (lam : ℝ) (g : E → ℝ≥0∞) (x : E) {q : ℚ} (hlq : lam ≤ q) (hq : 0 < q) :
     (μ (G.ball x q))⁻¹ * ∫⁻ y in G.ball x q, g y ∂μ ≤ G.maximal lam g x := by
   rw [G.measure_ball_zero x]
   exact le_iSup₂_of_le q hlq (le_iSup_of_le hq le_rfl)
 
+omit [SecondCountableTopology E] [SFinite μ] in
 theorem maximal_anti (g : E → ℝ≥0∞) (x : E) {lam lam' : ℝ} (h : lam ≤ lam') :
     G.maximal lam' g x ≤ G.maximal lam g x :=
   iSup₂_le fun q hq => iSup_le fun hq0 => G.le_maximal lam g x (h.trans hq) hq0 |>.trans'
     (by rw [G.measure_ball_zero x])
 
+omit [μ.IsAddLeftInvariant] in
 theorem measurable_maximal (lam : ℝ) {g : E → ℝ≥0∞} (hg : Measurable g) :
     Measurable (G.maximal lam g) := by
   refine Measurable.iSup fun q => Measurable.iSup fun _ => Measurable.iSup fun _ => ?_
@@ -143,21 +159,26 @@ theorem measurable_maximal (lam : ℝ) {g : E → ℝ≥0∞} (hg : Measurable g
   rw [e]
   exact this
 
+omit [IsTopologicalAddGroup E] [BorelSpace E] [SecondCountableTopology E]
+  [μ.IsAddLeftInvariant] [SFinite μ] in
 theorem mem_ball_comm {x y : E} {r : ℝ} : y ∈ G.ball x r ↔ x ∈ G.ball y r := by
-  simp only [ball, mem_setOf_eq]
+  simp only [ball, mem_ofPred_eq]
   rw [← G.neg (x - y), neg_sub]
 
+omit [IsTopologicalAddGroup E] [BorelSpace E] [SecondCountableTopology E]
+  [μ.IsAddLeftInvariant] [SFinite μ] in
 theorem ball_subset_of_inter (a b : E) {qa qb : ℝ} (h : (G.ball a qa ∩ G.ball b qb).Nonempty) :
     a ∈ G.ball b (qa + qb) := by
   obtain ⟨z, hza, hzb⟩ := h
-  simp only [ball, mem_setOf_eq] at hza hzb ⊢
+  simp only [ball, mem_ofPred_eq] at hza hzb ⊢
   have h1 := G.add_le (b - z) (z - a)
   rw [sub_add_sub_cancel] at h1
   have h2 : G.ρ (z - a) = G.ρ (a - z) := by rw [← G.neg (a - z), neg_sub]
   linarith
 
+omit [SecondCountableTopology E] in
 /-- **Weak type `(1,1)` of the maximal function**: `μ{M_0 g > t} ≤ 3^D t⁻¹ ∫ g`. -/
-theorem measure_maximal_gt_le (g : E → ℝ≥0∞) (hg : Measurable g) {t : ℝ≥0∞} (ht0 : t ≠ 0) :
+theorem measure_maximal_gt_le (g : E → ℝ≥0∞) {t : ℝ≥0∞} (ht0 : t ≠ 0) :
     μ {x | t < G.maximal 0 g x} ≤ ENNReal.ofReal (3 ^ G.D) / t * ∫⁻ y, g y ∂μ := by
   by_cases htop : t = ⊤
   · subst htop; simp
@@ -171,7 +192,7 @@ theorem measure_maximal_gt_le (g : E → ℝ≥0∞) (hg : Measurable g) {t : �
   have hex : ∀ x ∈ A, ∃ q : ℚ, 0 < q ∧
       t < (μ (G.ball x q))⁻¹ * ∫⁻ y in G.ball x q, g y ∂μ := by
     intro x hx
-    simp only [A, mem_setOf_eq, maximal, lt_iSup_iff] at hx
+    simp only [A, mem_ofPred_eq, maximal, lt_iSup_iff] at hx
     obtain ⟨q, -, hq, h⟩ := hx
     exact ⟨q, hq, by rwa [G.measure_ball_zero x]⟩
   choose! qx hqpos hqgood using hex
@@ -215,7 +236,7 @@ theorem measure_maximal_gt_le (g : E → ℝ≥0∞) (hg : Measurable g) {t : �
       (fun b b' hbb' => hud b.2 b'.2 (fun h => hbb' (Subtype.ext h)))
     have : {b : u | 0 < μ (G.ball b (qx b))} = univ := by
       ext b
-      simp only [mem_setOf_eq, mem_univ, iff_true]
+      simp only [mem_ofPred_eq, mem_univ, iff_true]
       exact G.measure_ball_pos _ (by exact_mod_cast hqpos b (huA b.2))
     rw [this] at h
     exact Set.countable_coe_iff.mp (countable_univ_iff.mp h)
@@ -225,7 +246,7 @@ theorem measure_maximal_gt_le (g : E → ℝ≥0∞) (hg : Measurable g) {t : �
     refine mem_biUnion hbu ?_
     have := G.ball_subset_of_inter a b hinter
     exact G.ball_mono b (by linarith) this
-  haveI := hcount.to_subtype
+  have := hcount.to_subtype
   calc μ A ≤ μ (⋃ b ∈ u, G.ball b (3 * qx b)) := measure_mono hsubset
     _ ≤ ∑' b : u, μ (G.ball b (3 * qx b)) := measure_biUnion_le _ hcount _
     _ = ∑' b : u, ENNReal.ofReal (3 ^ G.D) * μ (G.ball b (qx b)) := by
@@ -267,7 +288,7 @@ theorem lintegral_Ioi_indicator_two_mul (a : ℝ≥0∞) :
           exact ENNReal.ofReal_le_ofReal (by linarith)
   · have hset : {t : ℝ | ENNReal.ofReal t < a} ∩ Ioi 0 = Ioo 0 a.toReal := by
       ext t
-      simp only [mem_inter_iff, mem_setOf_eq, mem_Ioi, mem_Ioo]
+      simp only [mem_inter_iff, mem_ofPred_eq, mem_Ioi, mem_Ioo]
       constructor
       · rintro ⟨h1, h2⟩
         exact ⟨h2, (ENNReal.ofReal_lt_iff_lt_toReal h2.le ha).mp h1⟩
@@ -296,7 +317,7 @@ theorem lintegral_Ioi_indicator_half (b : ℝ≥0∞) :
     rw [this, Real.volume_Ioi, ENNReal.mul_top two_ne_zero]
   · have hset : {t : ℝ | ENNReal.ofReal (t / 2) < b} ∩ Ioi 0 = Ioo 0 (2 * b.toReal) := by
       ext t
-      simp only [mem_inter_iff, mem_setOf_eq, mem_Ioi, mem_Ioo]
+      simp only [mem_inter_iff, mem_ofPred_eq, mem_Ioi, mem_Ioo]
       constructor
       · rintro ⟨h1, h2⟩
         refine ⟨h2, ?_⟩
@@ -313,7 +334,8 @@ variable {E : Type*} [AddCommGroup E] [TopologicalSpace E] [IsTopologicalAddGrou
   [MeasurableSpace E] [BorelSpace E] [SecondCountableTopology E]
   {μ : Measure E} [μ.IsAddLeftInvariant] [SFinite μ] (G : HomGauge E μ)
 
-theorem maximal_le_add (g : E → ℝ≥0∞) (hg : Measurable g) (s : ℝ≥0∞) (x : E) :
+omit [SecondCountableTopology E] [SFinite μ] in
+theorem maximal_le_add (g : E → ℝ≥0∞) (s : ℝ≥0∞) (x : E) :
     G.maximal 0 g x ≤ G.maximal 0 ({y | s < g y}.indicator g) x + s := by
   refine iSup₂_le fun q _ => iSup_le fun hq => ?_
   have hq' : (0 : ℝ) < q := by exact_mod_cast hq
@@ -373,14 +395,13 @@ theorem lintegral_maximal_sq_le (g : E → ℝ≥0∞) (hg : Measurable g) :
     have hsub : {x | ENNReal.ofReal t < G.maximal 0 g x} ⊆
         {x | s < G.maximal 0 ({y | s < g y}.indicator g) x} := by
       intro x hx
-      simp only [mem_setOf_eq] at hx ⊢
+      simp only [mem_ofPred_eq] at hx ⊢
       by_contra hle
       push Not at hle
-      have := (G.maximal_le_add g hg s x).trans (add_le_add hle le_rfl)
+      have := (G.maximal_le_add g s x).trans (add_le_add hle le_rfl)
       rw [← ENNReal.ofReal_add (by linarith) (by linarith), add_halves] at this
       exact absurd hx (not_lt.mpr this)
-    have hw := G.measure_maximal_gt_le ({y | s < g y}.indicator g)
-      (hg.indicator (measurableSet_lt measurable_const hg)) hs0
+    have hw := G.measure_maximal_gt_le ({y | s < g y}.indicator g) hs0
     calc ENNReal.ofReal (2 * t) * μ {x | ENNReal.ofReal t < G.maximal 0 g x}
         ≤ ENNReal.ofReal (2 * t) * (c / s * ∫⁻ x, {y | s < g y}.indicator g x ∂μ) := by
           gcongr; exact (measure_mono hsub).trans hw
@@ -416,7 +437,7 @@ theorem lintegral_maximal_sq_le (g : E → ℝ≥0∞) (hg : Measurable g) :
               (ENNReal.measurable_ofReal.comp (measurable_id.div_const 2)) measurable_const)
         rw [← lintegral_const_mul (g x) hmI]
         refine lintegral_congr fun t => ?_
-        simp only [indicator, mem_setOf_eq, Pi.one_apply]
+        simp only [indicator, mem_ofPred_eq, Pi.one_apply]
         split_ifs <;> simp
     _ = 8 * c * ∫⁻ x, g x ^ 2 ∂μ := by
         simp_rw [lintegral_Ioi_indicator_half]
@@ -426,12 +447,14 @@ theorem lintegral_maximal_sq_le (g : E → ℝ≥0∞) (hg : Measurable g) :
     _ = _ := by
         rw [ENNReal.ofReal_mul (by norm_num), ENNReal.ofReal_ofNat]
 
+omit [IsTopologicalAddGroup E] [BorelSpace E] [SecondCountableTopology E]
+  [μ.IsAddLeftInvariant] [SFinite μ] in
 theorem measure_lt_eq (r : ℝ) (hr : 0 < r) :
     μ {y | G.ρ y < r} = ENNReal.ofReal (r ^ G.D) * μ {y | G.ρ y ≤ 1} := by
   -- continuity from below along `r - 1/(k+1)`
   have hU : {y | G.ρ y < r} = ⋃ k : ℕ, {y | G.ρ y ≤ r - r / (k + 2)} := by
     ext y
-    simp only [mem_setOf_eq, mem_iUnion]
+    simp only [mem_ofPred_eq, mem_iUnion]
     constructor
     · intro h
       obtain ⟨k, hk⟩ := exists_nat_gt (r / (r - G.ρ y))
@@ -446,7 +469,7 @@ theorem measure_lt_eq (r : ℝ) (hr : 0 < r) :
       linarith
   have hmono : Monotone fun k : ℕ => {y | G.ρ y ≤ r - r / (k + 2)} := by
     intro a b hab y hy
-    simp only [mem_setOf_eq] at hy ⊢
+    simp only [mem_ofPred_eq] at hy ⊢
     have : r / (b + 2) ≤ r / (a + 2) :=
       div_le_div_of_nonneg_left hr.le (by positivity) (by exact_mod_cast (by omega : a + 2 ≤ b + 2))
     linarith
@@ -478,9 +501,11 @@ theorem measure_lt_eq (r : ℝ) (hr : 0 < r) :
   exact le_of_tendsto' hlim fun k => le_iSup (fun k : ℕ => ENNReal.ofReal
     ((r - r / (k + 2)) ^ G.D)) k
 
+omit [SecondCountableTopology E] [SFinite μ] in
 theorem measure_lt_eq_ball (r : ℝ) (hr : 0 < r) : μ {y | G.ρ y < r} = μ (G.ball 0 r) := by
   rw [G.measure_lt_eq r hr, G.measure_ball_eq 0 hr]
 
+omit [SecondCountableTopology E] [SFinite μ] in
 /-- The integral over a gauge ball of real radius `R ≥ λ` is controlled by `M_λ`. -/
 theorem setLIntegral_ball_le (lam : ℝ) (g : E → ℝ≥0∞) (x : E) {R : ℝ} (hR : 0 < R)
     (hlR : lam ≤ R) :
@@ -540,7 +565,7 @@ theorem lintegral_Ioi_indicator_lt (a : ℝ≥0∞) :
     rw [this, Real.volume_Ioi]
   · have hset : {s : ℝ | ENNReal.ofReal s < a} ∩ Ioi 0 = Ioo 0 a.toReal := by
       ext s
-      simp only [mem_inter_iff, mem_setOf_eq, mem_Ioi, mem_Ioo]
+      simp only [mem_inter_iff, mem_ofPred_eq, mem_Ioi, mem_Ioo]
       constructor
       · rintro ⟨h1, h2⟩
         exact ⟨h2, (ENNReal.ofReal_lt_iff_lt_toReal h2.le ha).mp h1⟩
@@ -644,7 +669,7 @@ theorem lintegral_mul_gauge_le [μ.IsNegInvariant] {lam : ℝ} (hlam : 0 < lam) 
     by_cases hs0 : ENNReal.ofReal s < W 0
     · -- `S` contains the ball of radius `λ`
       have hball : {y | G.ρ y ≤ lam} ⊆ S := fun y hy => by
-        simp only [S, mem_setOf_eq]
+        simp only [S, mem_ofPred_eq]
         rw [hWc (G.ρ y) ⟨G.nonneg y, hy⟩]; exact hs0
       have h0S : (0 : E) ∈ S := hball (by simp [G.zero, hlam.le])
       by_cases hbdd : BddAbove (G.ρ '' S)
@@ -656,13 +681,13 @@ theorem lintegral_mul_gauge_le [μ.IsNegInvariant] {lam : ℝ} (hlam : 0 < lam) 
           (le_csSup hbdd (mem_image_of_mem _ hy)).trans (le_max_left _ _)
         have hRS : {y | G.ρ y < R} ⊆ S := by
           intro y hy
-          simp only [mem_setOf_eq] at hy
+          simp only [mem_ofPred_eq] at hy
           rcases le_total lam R₀ with hl | hl
           · have hy' : G.ρ y < R₀ := by
               rwa [show R = max R₀ lam from rfl, max_eq_left hl] at hy
             obtain ⟨_, ⟨y', hy'', rfl⟩, hlt⟩ := exists_lt_of_lt_csSup
               ⟨G.ρ 0, mem_image_of_mem _ h0S⟩ hy'
-            simp only [S, mem_setOf_eq] at hy'' ⊢
+            simp only [S, mem_ofPred_eq] at hy'' ⊢
             exact hy''.trans_le (hW hlt.le)
           · rw [show R = max R₀ lam from rfl, max_eq_right hl] at hy
             exact hball hy.le
@@ -675,7 +700,7 @@ theorem lintegral_mul_gauge_le [μ.IsNegInvariant] {lam : ℝ} (hlam : 0 < lam) 
                 (fun z => (G.ball x R).indicator g z) x
               rw [← this]
               refine lintegral_congr fun y => ?_
-              simp only [indicator, ball, mem_setOf_eq, sub_sub_cancel]
+              simp only [indicator, ball, mem_ofPred_eq, sub_sub_cancel]
           _ ≤ μ (G.ball 0 R) * M := G.setLIntegral_ball_le lam g x hRpos hlR
           _ = μ {y | G.ρ y < R} * M := by rw [G.measure_lt_eq_ball R hRpos]
           _ ≤ μ S * M := by gcongr
@@ -685,9 +710,9 @@ theorem lintegral_mul_gauge_le [μ.IsNegInvariant] {lam : ℝ} (hlam : 0 < lam) 
             intro r hr
             rw [← G.measure_lt_eq r hr]
             refine measure_mono fun z hz => ?_
-            simp only [mem_setOf_eq] at hz
+            simp only [mem_ofPred_eq] at hz
             obtain ⟨_, ⟨y, hy, rfl⟩, hlt⟩ := not_bddAbove_iff.mp hbdd r
-            simp only [S, mem_setOf_eq] at hy ⊢
+            simp only [S, mem_ofPred_eq] at hy ⊢
             exact hy.trans_le (hW (hz.trans hlt).le)
           have hlim : Filter.Tendsto (fun r : ℝ => ENNReal.ofReal (r ^ G.D) * μ {y | G.ρ y ≤ 1})
               Filter.atTop (nhds ⊤) := by
@@ -701,28 +726,29 @@ theorem lintegral_mul_gauge_le [μ.IsNegInvariant] {lam : ℝ} (hlam : 0 < lam) 
     · -- `S` is empty
       have hS : S = ∅ := by
         ext y
-        simp only [S, mem_setOf_eq, mem_empty_iff_false, iff_false, not_lt]
+        simp only [S, mem_ofPred_eq, mem_empty_iff_false, iff_false, not_lt]
         exact (hW (G.nonneg y)).trans (not_lt.mp hs0)
       rw [hS, Measure.restrict_empty, lintegral_zero_measure]
       exact bot_le
   have hanti : Antitone fun s : ℝ => μ {y | ENNReal.ofReal s < W (G.ρ y)} := by
     intro a b hab
     refine measure_mono fun y hy => ?_
-    simp only [mem_setOf_eq] at hy ⊢
+    simp only [mem_ofPred_eq] at hy ⊢
     exact (ENNReal.ofReal_le_ofReal hab).trans_lt hy
   rw [hLHS, hRHS, ← lintegral_mul_const _ hanti.measurable]
   exact setLIntegral_mono' measurableSet_Ioi fun s hs => hlevel s hs
 
+omit [SecondCountableTopology E] [SFinite μ] in
 /-- Comparison of maximal functions at nearby points: if `ρ(x − y) ≤ λ`, then
 `M_λ g(x) ≤ 2^D M_0 g(y)`. -/
-theorem maximal_le_of_rho_sub_le (g : E → ℝ≥0∞) {x y : E} {lam : ℝ} (hlam : 0 < lam)
+theorem maximal_le_of_rho_sub_le (g : E → ℝ≥0∞) {x y : E} {lam : ℝ}
     (hxy : G.ρ (x - y) ≤ lam) :
     G.maximal lam g x ≤ ENNReal.ofReal (2 ^ G.D) * G.maximal 0 g y := by
   refine iSup₂_le fun q hq => iSup_le fun hq0 => ?_
   have hq' : (0 : ℝ) < q := by exact_mod_cast hq0
   have hsub : G.ball x q ⊆ G.ball y (2 * q) := by
     intro w hw
-    simp only [ball, Set.mem_setOf_eq] at hw ⊢
+    simp only [ball, Set.mem_ofPred_eq] at hw ⊢
     have := G.add_le (y - x) (x - w)
     rw [sub_add_sub_cancel] at this
     have h2 : G.ρ (y - x) = G.ρ (x - y) := by rw [← G.neg (x - y), neg_sub]
