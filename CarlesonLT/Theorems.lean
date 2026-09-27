@@ -20,9 +20,9 @@ open MeasureTheory Filter Topology Function Real Set
 /-- **Carleson's theorem.** The Fourier series of a `2π`-periodic `L²` function
 on `ℝ` converges pointwise almost everywhere. -/
 theorem classical_carleson (f : ℝ → ℂ) (hper : Periodic f (2 * π))
-    (hf : MemLp f 2 (volume.restrict (Ioc (-π) π))) :
+    (hf : MemLp f 2 (volume.restrict (Ico 0 (2 * π)))) :
     ∀ᵐ x, Tendsto (fun N ↦ fourierPartialSum f N x) atTop (𝓝 (f x)) :=
-  sorry
+  Auto.classical_carleson f hper hf
 
 
 end

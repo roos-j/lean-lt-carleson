@@ -16,7 +16,8 @@ in dimension `n = 1` with the multiplier `m = 1_{(0,∞)}`.
 * `Auto.carleson_fourierSeries`: **Carleson's theorem** (L. Carleson, *On convergence and growth of
   partial sums of Fourier series*, Acta Math. 116 (1966), 135–157): for a `1`-periodic `f` with
   `MemLp f 2` on `(0,1]`, the symmetric partial sums of its Fourier series converge to `f(x)` for
-  almost every `x`.
+  almost every `x`. `Auto.classical_carleson` states it for `2π`-periodic `f` with `MemLp f 2` on
+  `[0, 2π)`, using Mathlib's Fourier coefficients `fourierCoeffOn` and characters `fourier`.
 
 The proof of the real-line result is the standard one: the maximal partial Fourier integral is
 dominated by the Carleson operator, hence of weak type `(2,2)` on Schwartz functions, hence on
@@ -954,5 +955,83 @@ theorem carleson_fourierSeries {f : ℝ → ℂ} (hper : Function.Periodic f 1)
   refine h3.congr fun N => ?_
   rw [fourierPartialSum1_eq_local hper hf a hxa N]
   simp only [Function.comp, H, mul_assoc]
+
+/-! ### Carleson's theorem for `2π`-periodic functions (Mathlib's Fourier coefficients) -/
+
+theorem memLp_comp_mul_left {φ : ℝ → ℂ} (hφ : MemLp φ 2 volume) {c : ℝ} (hc : c ≠ 0) :
+    MemLp (fun x => φ (c * x)) 2 volume := by
+  have h1 : MemLp φ 2 (Measure.map (c * ·) volume) := by
+    rw [Real.map_volume_mul_left hc]; exact hφ.smul_measure ENNReal.ofReal_ne_top
+  exact (memLp_map_measure_iff h1.aestronglyMeasurable
+    (measurable_const_mul c).aemeasurable).mp h1
+
+/-- The rescaling `t ↦ f(2πt)` of `f ∈ L²[0, 2π)` is square integrable on `(0, 1]`. -/
+theorem memLp_rescale {f : ℝ → ℂ} (hf : MemLp f 2 (volume.restrict (Set.Ico 0 (2 * π)))) :
+    MemLp (fun t => f (2 * π * t)) 2 (volume.restrict (Set.Ioc 0 1)) := by
+  have hπ : (0 : ℝ) < 2 * π := by positivity
+  have h0 : MemLp ((Set.Ico 0 (2 * π)).indicator f) 2 volume :=
+    (memLp_indicator_iff_restrict measurableSet_Ico).mpr hf
+  have hG : MemLp ((Set.Ico (0 : ℝ) 1).indicator fun t => f (2 * π * t)) 2 volume := by
+    refine (memLp_comp_mul_left h0 hπ.ne').ae_eq (Eventually.of_forall fun t => ?_)
+    have e1 : 0 ≤ 2 * π * t ↔ 0 ≤ t := by
+      constructor <;> intro h <;> nlinarith [Real.pi_pos]
+    have e2 : 2 * π * t < 2 * π ↔ t < 1 := by
+      constructor <;> intro h <;> nlinarith [Real.pi_pos]
+    simp only [Set.indicator_apply, Set.mem_Ico, e1, e2]
+  rw [← Measure.restrict_congr_set Ico_ae_eq_Ioc]
+  exact (memLp_indicator_iff_restrict measurableSet_Ico).mp hG
+
+/-- Mathlib's Fourier coefficients on `[0, 2π]` are those of the rescaled function. -/
+theorem fourierCoeffOn_eq_fourierCoeff1 (f : ℝ → ℂ) (n : ℤ) :
+    fourierCoeffOn Real.two_pi_pos f n = fourierCoeff1 (fun t => f (2 * π * t)) n := by
+  have hπ : (2 * π : ℝ) ≠ 0 := by positivity
+  have hπC : (2 * π : ℂ) ≠ 0 := by exact_mod_cast hπ
+  rw [fourierCoeffOn_eq_integral]
+  unfold fourierCoeff1
+  have h1 : (∫ y in (0 : ℝ)..1, Complex.exp (-(2 * π * Complex.I * n * y)) * f (2 * π * y)) =
+      ∫ y in (0 : ℝ)..1,
+        (fun u : ℝ => Complex.exp (-(Complex.I * n * u)) * f u) (2 * π * y) := by
+    congr 1; funext y; simp only; congr 2; push_cast; ring
+  rw [h1, intervalIntegral.integral_comp_mul_left
+    (f := fun u : ℝ => Complex.exp (-(Complex.I * n * u)) * f u) hπ, mul_zero, mul_one, sub_zero]
+  simp_rw [fourier_coe_apply, smul_eq_mul]
+  rw [Complex.real_smul, Complex.real_smul]
+  congr 1
+  · push_cast; ring
+  · congr 1; funext x; congr 2; push_cast; field_simp
+
+theorem fourierPartialSum_eq_fourierPartialSum1 (f : ℝ → ℂ) (N : ℕ) (x : ℝ) :
+    ∑ n ∈ Finset.Icc (-(N : ℤ)) N,
+        fourierCoeffOn Real.two_pi_pos f n * fourier n (x : AddCircle (2 * π)) =
+      fourierPartialSum1 (fun t => f (2 * π * t)) N ((2 * π)⁻¹ * x) := by
+  have hπC : (2 * π : ℂ) ≠ 0 := by exact_mod_cast (by positivity : (2 * π : ℝ) ≠ 0)
+  unfold fourierPartialSum1
+  refine Finset.sum_congr rfl fun n _ => ?_
+  rw [fourierCoeffOn_eq_fourierCoeff1, fourier_coe_apply]
+  congr 2
+  push_cast
+  field_simp
+
+/-- **Carleson's theorem** (Carleson 1966): the Fourier series of a `2π`-periodic function on `ℝ`
+that is square integrable on `[0, 2π)` converges to it almost everywhere. -/
+theorem classical_carleson (f : ℝ → ℂ) (hper : Function.Periodic f (2 * π))
+    (hf : MemLp f 2 (volume.restrict (Set.Ico 0 (2 * π)))) :
+    ∀ᵐ x : ℝ, Tendsto (fun N : ℕ => ∑ n ∈ Finset.Icc (-(N : ℤ)) N,
+      fourierCoeffOn Real.two_pi_pos f n * fourier n (x : AddCircle (2 * π))) atTop (𝓝 (f x)) := by
+  have hπ : (2 * π : ℝ) ≠ 0 := by positivity
+  set g : ℝ → ℂ := fun t => f (2 * π * t)
+  have hgper : Function.Periodic g 1 := fun t => by
+    simp only [g]; rw [mul_add, mul_one, hper]
+  have h := carleson_fourierSeries hgper (memLp_rescale hf)
+  rw [ae_iff] at h ⊢
+  have hset : {x : ℝ | ¬ Tendsto (fun N : ℕ => ∑ n ∈ Finset.Icc (-(N : ℤ)) N,
+      fourierCoeffOn Real.two_pi_pos f n * fourier n (x : AddCircle (2 * π))) atTop (𝓝 (f x))} =
+      (fun x => (2 * π)⁻¹ * x) ⁻¹'
+        {t | ¬ Tendsto (fun N => fourierPartialSum1 g N t) atTop (𝓝 (g t))} := by
+    ext x
+    simp only [Set.mem_ofPred_eq, Set.mem_preimage, g]
+    rw [mul_inv_cancel_left₀ hπ]
+    simp_rw [fourierPartialSum_eq_fourierPartialSum1]
+  rw [hset, Real.volume_preimage_mul_left (inv_ne_zero hπ), h, mul_zero]
 
 end Auto

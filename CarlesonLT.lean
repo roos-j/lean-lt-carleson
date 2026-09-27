@@ -6,3 +6,5 @@ import CarlesonLT.Auto.Main
 import CarlesonLT.Auto.ParametricIntegralContDiff
 import CarlesonLT.Auto.HardyLittlewoodMaximal
 import CarlesonLT.Auto.ClassicalCarleson
+import CarlesonLT.Defs
+import CarlesonLT.Theorems

@@ -155,10 +155,12 @@ Discrepancies: `automation/ErrorReport.md`.
   propext, Classical.choice and Quot.sound. Both editions of the autoformalize skill (`references/bootstrap.md` step 2 and
   `SKILL.md` §Initialize) now pin new projects to the latest Lean/Mathlib release, counting release candidates, unless the
   user specifies otherwise.
-- [R14, 2026-09-27T15:47:40-04:00] New user-created files `CarlesonLT/Defs.lean` (definitions) and `CarlesonLT/Theorems.lean` (statements),
-  both authorized by R14. `Theorems.lean` states, as close as possible to the original papers:
-  (1) Carleson's theorem (1966) for Fourier series, in Carleson's `2π`-periodic formulation;
-  (2) the a priori weak `(2,2)` bound for the one-dimensional Carleson operator `sup_N |∫_{-∞}^N f̂(ξ) e^{2πixξ} dξ|` on
-      Schwartz functions (Lacey–Thiele 2000);
-  (3) Theorem 1.1 of arXiv:1710.10962 (`‖𝒞_m f‖_{2,∞} ≤ C‖m‖_{𝓜^{ν₀}}‖f‖₂`).
-  `Defs.lean` depends only on Mathlib. The proofs reduce to the `Auto` results.
+- DONE (R18, 2026-09-27T19:35:04-04:00): `Auto.classical_carleson` in `CarlesonLT/Auto/ClassicalCarleson.lean` copies the user's
+  `classical_carleson` (`CarlesonLT/Theorems.lean`): it uses Mathlib's `fourierCoeffOn Real.two_pi_pos` and `fourier` on
+  `AddCircle (2π)`, with the partial sum written out inline. It is proved by rescaling to `Auto.carleson_fourierSeries`
+  (`Auto.memLp_rescale`, `Auto.fourierCoeffOn_eq_fourierCoeff1`). The proof in `Theorems.lean` is
+  `Auto.classical_carleson f hper hf`. The build has no warnings, and the axioms are propext, Classical.choice and
+  Quot.sound.
+- DONE (R19, 2026-09-27T19:36:51-04:00): the hypothesis of `classical_carleson` and `Auto.classical_carleson` is now `MemLp f 2` on `[0, 2π)`
+  (the user's change). `Auto.memLp_rescale` is simplified to scaling plus `Ico =ᵐ Ioc`. The build has no warnings, and
+  the axioms are propext, Classical.choice and Quot.sound.
