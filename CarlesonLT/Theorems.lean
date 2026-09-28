@@ -15,7 +15,19 @@ import CarlesonLT.Auto.ClassicalCarleson
 
 section
 
-open MeasureTheory Filter Topology Function Real Set
+open CarlesonLT
+open MeasureTheory Filter Topology Function Real Set SchwartzMap
+
+variable {n : ℕ}
+
+/-- Theorem 1.1 of `arXiv:1710.10962` proving a weak (2,2) a priori bound for
+Carleson operators associated with anisotropic multipliers on `ℝ^n`. -/
+theorem anisotropic_carleson (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn : 0 < n) (ν₀ : ℕ)
+    (hν₀ : 3 * (∑ i, α i) + 2 ≤ ν₀) :
+      ∃ C : ℝ, 0 < C ∧ ∀ (m : ℝ^n → ℂ), MultiplierClass α ν₀ m → ∀ f : 𝓢(ℝ^n, ℂ),
+        weakL2Norm volume (carlesonOperator m f) ≤
+          ENNReal.ofReal C * (multiplierNorm α ν₀ m) * eLpNorm f 2 volume :=
+  sorry
 
 /-- **Carleson's theorem.** The Fourier series of a `2π`-periodic `L²` function
 on `ℝ` converges pointwise almost everywhere. -/
