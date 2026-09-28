@@ -164,3 +164,9 @@ Discrepancies: `automation/ErrorReport.md`.
 - DONE (R19, 2026-09-27T19:36:51-04:00): the hypothesis of `classical_carleson` and `Auto.classical_carleson` is now `MemLp f 2` on `[0, 2π)`
   (the user's change). `Auto.memLp_rescale` is simplified to scaling plus `Ico =ᵐ Ioc`. The build has no warnings, and
   the axioms are propext, Classical.choice and Quot.sound.
+- DONE (R33, 2026-09-27T20:50:27-04:00): `Auto.anisotropic_carleson` (end of `CarlesonLT/Auto/Main.lean`, which now imports
+  `CarlesonLT.Defs`) is a copy of the user's `anisotropic_carleson`. It uses Mathlib's `𝓕` and `𝐞` and the weak-`L²`
+  form `≤ ofReal C * ‖m‖ * ‖f‖₂`. The Fourier normalization is bridged by `m̃(ζ) = m(ζ/2π)`:
+  `Auto.carlesonOperator_le`, `Auto.ClassM.comp_smul`, `Auto.normM_comp_smul_le` (`‖m̃‖ ≤ n^ν (2π)^{ν|α|} ‖m‖`) and
+  `Auto.multiplierNorm_eq_normM`. The proof in `Theorems.lean` is `Auto.anisotropic_carleson α hα hn ν₀ hν₀`. The build has
+  no warnings, there is no `sorry`, and the axioms are propext, Classical.choice and Quot.sound.
