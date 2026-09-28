@@ -7,10 +7,8 @@ import CarlesonLT.Defs
 import CarlesonLT.Auto.ClassicalCarleson
 
 /-!
-# Main theorems
-
-* Carleson's classical theorem on pointwise a.e. convergence of Fourier series
-
+This file contains the statements of the main theorems:
+`anisotropic_carleson` and `classical_carleson`
 -/
 
 section
@@ -27,7 +25,7 @@ theorem anisotropic_carleson (α : Fin n → ℕ) (hα : ∀ i, 1 ≤ α i) (hn 
       ∃ C : ℝ, 0 < C ∧ ∀ (m : ℝ^n → ℂ), MultiplierClass α ν₀ m → ∀ f : 𝓢(ℝ^n, ℂ),
         weakL2Norm volume (carlesonOperator m f) ≤
           ENNReal.ofReal C * (multiplierNorm α ν₀ m) * eLpNorm f 2 volume :=
-  sorry
+  Auto.anisotropic_carleson α hα hn ν₀ hν₀
 
 /-- **Carleson's theorem.** The Fourier series of a `2π`-periodic `L²` function
 on `ℝ` converges pointwise almost everywhere. -/
@@ -35,6 +33,5 @@ theorem classical_carleson (f : ℝ → ℂ) (hper : Periodic f (2 * π))
     (hf : MemLp f 2 (volume.restrict (Ico 0 (2 * π)))) :
     ∀ᵐ x, Tendsto (fun N ↦ fourierPartialSum f N x) atTop (𝓝 (f x)) :=
   Auto.classical_carleson f hper hf
-
 
 end
