@@ -170,3 +170,8 @@ Discrepancies: `automation/ErrorReport.md`.
   `Auto.carlesonOperator_le`, `Auto.ClassM.comp_smul`, `Auto.normM_comp_smul_le` (`‖m̃‖ ≤ n^ν (2π)^{ν|α|} ‖m‖`) and
   `Auto.multiplierNorm_eq_normM`. The proof in `Theorems.lean` is `Auto.anisotropic_carleson α hα hn ν₀ hν₀`. The build has
   no warnings, there is no `sorry`, and the axioms are propext, Classical.choice and Quot.sound.
+- DONE (R36, 2026-09-27T22:04:47-04:00), on branch `palomar` only (`master` unchanged): Palomar submission files `Challenge.lean`,
+  `Solution.lean` (import-only, `import CarlesonLT.Theorems`), `comparator.json` (`anisotropic_carleson`,
+  `classical_carleson`), `formalization.yaml` (v0.4; the schema validates), and Challenge/Solution targets in
+  `lakefile.toml`. The Quick Comparator passed. `lake comparator --inadvisably-no-sandbox` passed with the Lean kernel.
+  Not committed.
