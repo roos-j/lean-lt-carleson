@@ -16,8 +16,6 @@ This file contains the statements of the main theorems:
 
 @[expose] public section
 
-section
-
 open CarlesonLT
 open MeasureTheory Filter Topology Function Real Set SchwartzMap
 

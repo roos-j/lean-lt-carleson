@@ -9,11 +9,15 @@ public import Mathlib.Analysis.Fourier.AddCircle
 public import Mathlib.Analysis.Fourier.FourierTransform
 public import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
 
-@[expose] public section
+/-!
+
+Definition of Fourier partial sums, multiplier class, and Carleson operator.
+
+-/
+
+@[expose] public noncomputable section
 
 namespace CarlesonLT
-
-noncomputable section
 
 open Real Complex Finset ENNReal MeasureTheory Set EuclideanSpace
 open scoped InnerProductSpace FourierTransform
@@ -60,6 +64,6 @@ def multiplierNorm (α : Fin n → ℕ) (ν : ℕ) (m : ℝ^n → ℂ) : ℝ≥0
   ⨆ (k ≤ ν) (i : Fin k → Fin n) (ξ : ℝ^n) (_ : anisoNorm α ξ = 1),
     ‖iteratedFDeriv ℝ k m ξ (fun j ↦ single (i j) 1)‖ₑ
 
-end
-
 end CarlesonLT
+
+end
